@@ -1,6 +1,23 @@
+#functions used for some analysis
 
+#' @title perform 2^k analysis on factors
+#'
+#' @description will report the effects of various factors of two levels
+#'
+#' @name twokeffect
+#'
+#' @param df data frame passed containing value vector and factors
+#' @param v.col.n positive integer that describes the index of the response vector
+#' @param fact.col.n vector of positive integer(s) that describes the index of the
+#' factors to be used
+#' @param interaction Logical, augments if interaction between factor levels will
+#' be reported. Default is set to FALSE
+#'
+#' @return data frame of effects
+#'
+#' @export
 twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
-  
+
   if((v.col.n%%1) != 0){
     stop("v.vol.n must be a integer")
   }
@@ -15,7 +32,7 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
     stop("interaction must be a logical vector. Assign 'TRUE' to also get interactions between factors")
   }
   colsize <- n + 1
-  sub<- vector("integer", colsize) 
+  sub<- vector("integer", colsize)
   sub[1] <- v.col.n
   for(i in 2:colsize) {
     sub[i] <- fact.col.n[i-1]
@@ -35,7 +52,7 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
     if((length(unique(df[,j]))!=2)) {
       stop(paste(cnames[j], " must be a factor of only 2 levels.", sep = ""))
     }
-    
+
   }
   index1 <- 1
   index2 <- 0
@@ -51,7 +68,7 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
         cmb.mean1 <- mean(df[((df[,k]==x.fctrs[1])&(df[,l]==y.fctrs[1])|(df[,k]==x.fctrs[2])&(df[,l]==y.fctrs[2])),1])
         cmb.mean2 <- mean(df[((df[,k]==x.fctrs[2])&(df[,l]==y.fctrs[1])|(df[,k]==x.fctrs[1])&(df[,l]==y.fctrs[2])),1])
         if(is.nan(cmb.mean1)|is.nan(cmb.mean2)){
-          effect[n+index1] <-NA 
+          effect[n+index1] <-NA
         } else {
           if(cmb.mean1>cmb.mean2) {
             effect[n+index1] <- cmb.mean1-cmb.mean2
@@ -70,13 +87,13 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
     result <- vector("character", n)
     rnames <- vector("character", n)
   }
-  
-  
+
+
   for(m in 2:colsize){
     fctrs <- as.character(unique(df[,m]))
     mean1 <- mean(df[df[,m]==fctrs[1],1])
     mean2 <- mean(df[df[,m]==fctrs[2],1])
-  
+
     if(mean1>mean2) {
       effect[m-1] <- mean1-mean2
       result[m-1] <- paste("On average, switching from ", fctrs[2], " to ", fctrs[1], " increases ", cnames[1], " by ", round(effect[m-1]), ".", sep = "")
@@ -87,7 +104,7 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
       rnames[m-1] <- cnames[m]
     }
   }
-  
+
   vec <- cbind(effect, result)
   vec <- as.data.frame(vec)
   colnames(vec) <- c("Effects","Results")
@@ -96,17 +113,28 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
   return(vec)
 }
 
-# initial <- 1500
-# 
-# for(i in 1:56) {
-#   initial <- initial*1.02
-# }
-
+#' @title Reports a balanced sample of a data frame's factors
+#'
+#' @description will return a balancd data frame subset of the original
+#'
+#' @name balance.sample
+#'
+#' @param df data frame passed containing value vector and factors
+#' @param v.col.n positive integer that describes the index of the response vector
+#' @param fact.col.n vector of positive integer(s) that describes the index of the
+#' factors to be used
+#' @param replace Not yet working
+#' @param min.samp.numb Can take a positive integer, only subsets of factors
+#' greater than or equal to this number will be reported
+#'
+#' @return Balanced data frame that is a subset of the first
+#'
+#' @export
 balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb = "min") {
   if((v.col.n%%1) != 0){
     stop("v.vol.n must be a integer")
   }
- 
+
   n <- length(fact.col.n)
   if(any(fact.col.n%%1 != 0)) {
     stop("fact.col.n must be an integer vector")
@@ -115,7 +143,7 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
   #   stop("fact.col.n must be of at least length 2.")
   # }
   if(!is.logical(replace)) {
-    stop("interaction must be a logical vector. Assign 'TRUE' to also get interactions between factors")
+    stop("replace must be a logical vector.")
   }
   colsize <- n + 1
   sub<- vector("integer", colsize)
@@ -142,7 +170,7 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
     }
 
   }
-  
+
   tab <- table(df[,-1])
   if(!any(min.samp.numb %in% c("max","min"))) {
     if((min.samp.numb%%1)!=0){
@@ -154,9 +182,9 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
       tab.temp$id <- interaction(tab.temp[,-a])
       temp.df <- df
       temp.df$id <- interaction(temp.df[,-1])
-      
+
         temp.df <-temp.df[temp.df[,ncol(temp.df)] %in% tab.temp[,ncol(tab.temp)],]
-        
+
       temp.df <- drop.levels(temp.df)
       df <- temp.df[,-ncol(temp.df)]
       sample.n <- min(tab.temp[,a])
@@ -166,18 +194,18 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
       sample.n <- min(tab)
     }
   }
-  
+
   if(sample.n==0){
     stop("Some combination of factors passed has no samples to pull from. \n Consider passing integer to min.samp.numb.")
   }
-  
+
   level.comp <-1
   for(a in 2:colsize){
     level.n.temp <- nlevels(df[,a])*level.comp
     level.comp <- level.n.temp
   }
   #alpha <- level.comp*sample.n
-  
+
   factor.id.df <- as.data.frame(unique(df[,-1]))
   #factor.id.df$id <- interaction(factor.id.df)
   #browser()
@@ -192,7 +220,7 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
     } else {
       v <- sample(x = temp.df[,1],size = sample.n)
     }
-    
+
     v <- temp.df[temp.df[,1]%in% v,] #max and replace not working as intended because this will not repeat repeated values
     vec <- rbind(vec, v)
   }
@@ -200,17 +228,29 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
   return(vec)
 }
 
+#' @title generate combinations
+#'
+#' @description Generate a dataframe of the combinations
+#'
+#' @name comb.comp
+#'
+#' @param vector factor vector of at least 2
+#' @param rtrn.all logical, controlled internally
+#' @return dataframe
 comb.comp <- function(vector, rtrn.all = FALSE){
   if(!is.factor(vector)){
     stop("ERROR: at least one column is not a vector of factors")
   }
   n <- nlevels(vector)
+  if(n<2) {
+    stop("Number of factor levels should at least be 2")
+  }
   lvl.names <- levels(vector)
   numb.comb <- choose(n,2)
   rep.seq <- seq(from = n-1, to = 0, by = -1)
   factor1 <- rep(lvl.names, rep.seq)
   factor2 <- rep("factor", length(factor1))
-  
+
   j <-1
   index <- 0
   for(i in 1:length(factor1)){
@@ -221,21 +261,46 @@ comb.comp <- function(vector, rtrn.all = FALSE){
     j <- j + 1
     factor2[i]<- lvl.names[j]
   }
-  
+
   comp.f <- cbind(factor1,factor2)
-  comp.f <- as.data.frame(comp.f) 
+  comp.f <- as.data.frame(comp.f)
   colnames(comp.f) <- c("f1","f2")
-  
+
   if(rtrn.all==TRUE){
   comp.f <- comp.f %>%
     mutate(comb = paste(f1,".v.",f2, sep = ""))
   }
-  
+
   return(comp.f)
 }
 
+
+#' @title Wilcoxon tests through many factors
+#'
+#' @description Calculate the wilcoxon test between several factors
+#'
+#' @name combo.wilcox
+#'
+#' @param df data frame passed containing value vector and factors
+#' @param response positive integer that describes the index of the response vector
+#' @param factor vector of positive integer(s) that describes the index of the
+#' factors to be used. Number of factors passed changes the comparison. One factor
+#' vector passed will return wilcox test values between levels. Multiple factor
+#' vectors passed will return wilcon test values between all combination of interactions
+#' of factors.
+#' @param p.v.correct Logical assignment. Default set to FALSE. Will return logical vector
+#' along with test results. TRUE indicates P.value is less than adjusted P.value, FALSE
+#' indicates P.value is greated than adjusted P.value. Adjusted P.value is calculated using
+#' the bonferroni correction.
+#' @param single.factor.comp logical assignment. Default set to FALSE. Set to TRUE when you
+#' user wants compare between two levels of the same factor while all other factors are
+#' held constant. When set to TRUE, factor vector must be at least length 2.
+#'
+#' @return dataframe of wilcoxn test P.value results
+#'
+#' @export
 combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor.comp = FALSE) {
-  
+
   #browser()
   if((response%%1) != 0){
     stop("response must be a integer")
@@ -261,7 +326,7 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
       sub[i] <- factor[i-1]
     }
     df.work <- as.data.frame(df[,sub])
-    cnames <- as.character(colnames(df.work)) 
+    cnames <- as.character(colnames(df.work))
     for(j in 2:colsize){
       if(!is.factor(df.work[,j])) {
         stop(paste(cnames[j], " must be a factor.", sep = ""))
@@ -272,18 +337,18 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
       if((length(unique(df.work[,j]))<2)) {
         stop(paste(cnames[j], " must be a factor of at least 2 levels.", sep = ""))
       }
-      
+
     }
     #add single.factor.comp variable here...
     #build a for loop to loop over factor vectors passed, and then through factors
     #build either the df that is needed, or just a vector of desired interactions and subset from df later.
-    
+
     df.work <- df.work %>%
       mutate(int=interaction(df.work[,-1]))
     df <- df.work
-    
+
     if(single.factor.comp==TRUE){
-      
+
       combo.vec <- comb.comp(vector = df[,2])
       combo.vec <- cbind(rep(2,nrow(combo.vec)), combo.vec)
       colnames(combo.vec) <- c("column.index","f1","f2")
@@ -293,15 +358,15 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
         colnames(combo.vec.work) <- c("column.index","f1","f2")
         combo.vec <- rbind(combo.vec, combo.vec.work)
       }
-      
+
       combo.vec <- as.data.frame(combo.vec)
-      
+
       vec <- c()
       for(o in 1:nrow(combo.vec)){
       df.temp1 <- df.work[df.work[,combo.vec[o,1]] == as.character(combo.vec[o,2]) | df.work[,combo.vec[o,1]] == as.character(combo.vec[o,3]),]
       df.temp1$temp <- interaction(df.temp1[,c(-1,-(combo.vec[o,1]),-(colsize+1))])
       temp.names <- levels(df.temp1$temp)
-      
+
         df.z <- c()
         for(z in 1:nlevels(df.temp1$temp)){
           df.z.work <- df.temp1[df.temp1$temp == temp.names[z],]
@@ -330,32 +395,17 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
     }else{
       df <- as.data.frame(df.work[,c(1,ncol(df.work))])
     }
-    
-    
-    
   } else{
     df <- as.data.frame(df[,c(response,factor)])
   }
-  
-  
-  
-  
- 
-  
   if(!is.numeric(df[,1])) {
     stop("response must be a numeric vector")
   }
   df <- drop.levels(df)
-  ###
-  
   combo.vec <- comb.comp(vector = df[,2], rtrn.all = TRUE)
- 
-  ###
   ncomp.made <- nrow(combo.vec)
   vec <- vector("numeric", ncomp.made)
   names.c <-  vector("character", ncomp.made)
-  
-  
   for(k in 1:ncomp.made){
     df.temp <- df[df[,2]==as.character(combo.vec[k,1])|df[,2]==as.character(combo.vec[k,2]),]
     df.temp <- drop.levels(df.temp)
@@ -363,7 +413,7 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
     vec[k] <- wil.work[[3]]
     names.c[k] <- combo.vec[k,3]
   }
-  
+
   vec <- cbind(names.c,vec)
   vec <- as.data.frame(vec)
   colnames(vec) <- c("Tested Levels","P.value")
@@ -374,12 +424,24 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
       mutate(Sig.=ifelse(P.value<adjusted, TRUE, FALSE))
   }
   return(vec)
-  
-  
 }
 
+#' @title Three factor contrast anova
+#'
+#' @description Generate the anova test statistics for three factors
+#'
+#' @name contrast.aov3
+#'
+#' @param df data frame passed containing value vector and factors
+#' @param response positive integer that describes the index of the response vector
+#' @param factor3 positive integer vector of length three that describes the index
+#' of three factor vectors within the passed df.
+#'
+#' @return return dataframe of anova test statistic
+#'
+#' @export
 contrast.aov3 <- function(df, response, factor3){
- 
+
   if((response%%1) != 0){
     stop("response must be a integer")
   }
@@ -391,7 +453,7 @@ contrast.aov3 <- function(df, response, factor3){
     stop("factor3 must be of length 3.")
   }
   colsize <- n + 1
-  sub<- vector("integer", colsize) 
+  sub<- vector("integer", colsize)
   sub[1] <- response
   for(i in 2:colsize) {
     sub[i] <- factor3[i-1]
@@ -411,9 +473,9 @@ contrast.aov3 <- function(df, response, factor3){
     if((length(unique(df[,j]))<2)) {
       stop(paste(cnames[j], " must be a factor of at least 2 levels.", sep = ""))
     }
-    
+
   }
-  
+
   test <- df
   cnames <- colnames(test)[-1]
   .t1 <- summary(aov(test[,1]~test[,2]+test[,3]+test[,4]))[[1]]
