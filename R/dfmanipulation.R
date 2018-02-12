@@ -21,6 +21,45 @@ paste2 <- function(...,sep=", ") {
             do.call(paste,c(L,list(sep=sep)))))
 }
 
+#' @title  Index or Column name
+#'
+#' @description Internal funciton mostly used to see if vector
+#'  passed specifies column by character name or index
+#'
+#' @name index.o.coln
+#'
+#' @param vec vector we are testing
+#' @param v.size expected size of vec
+#' @param v.name argument name of vec in its function call
+#' @param name.col name of all column vectors
+#'
+#' @return integer vector of size v.size
+index.o.coln <- function(vec, v.size, v.name, name.col) {
+  if(length(vec)!=v.size) {
+    stop(paste(v.name,"must be of length 1", sep = " "))
+  }
+  if(is.character(vec)|is.numeric(vec)) {
+    if(is.character(vec)){
+      if(any(name.col==vec)){
+        index<-which(name.col==vec)
+      } else {
+        stop("character does not any column name")
+      }
+
+    }
+    if(is.numeric(vec)){
+      if(all((vec%%1)==0)){
+        index <- vec
+      }
+    }
+
+  } else {
+    stop(paste(v.name,"de.atomic must be character vector of column name or column index",sep = " "))
+  }
+
+  return(index)
+}
+
 #' @title  Find positions of a particular pattern.
 #'
 #' @description designed to find the position of a particular character
@@ -183,32 +222,11 @@ commoncol <- function(x, y, join=FALSE) {
 #' @export
 make.atomic <- function(df, de.atomic, sep, new.name = "atomic") {
 
-  if(length(de.atomic)!=1) {
-    stop("de.atomic must be of length 1")
-  }
-  name.col <- colnames(df)
   if(!is.character(new.name)) {
     stop("new.name must be a character vector")
   }
-  if(is.character(de.atomic)|is.numeric(de.atomic)) {
-    if(is.character(de.atomic)){
-      if(any(name.col==de.atomic)){
-        index<-which(name.col==de.atomic)
-      } else {
-        stop("character does not any column name")
-      }
-
-    }
-    if(is.numeric(de.atomic)){
-      if(all((de.atomic%%1)==0)){
-        index <- de.atomic
-      }
-    }
-
-  } else {
-    stop("de.atomic must be character vector of column name or column index")
-  }
-
+  name.col <- colnames(df)
+  index <- index.o.coln(vec = de.atomic,v.size = 1,v.name = "de.atomic",name.col = name.col)
 
   df <- df %>%
     mutate(atomic=(strsplit(as.character(df[,name.col[index]]),split = sep))) %>%
@@ -217,6 +235,153 @@ make.atomic <- function(df, de.atomic, sep, new.name = "atomic") {
   colnames(df) <- c(name.col, new.name)
 
   return(df)
+
+}
+
+
+
+#' @title Mode Type
+#'
+#' @description Find the mode of the variables of a df as
+#' dictated by str
+#'
+#' @name mode.type
+#'
+#' @param df data frame
+#'
+#' @return Return character vector of mode types
+#'
+#' @export
+mode.type <- function(df) {
+  output <- capture.output(str(df))
+  output <- output[-1]
+  output <- substr(x = output,
+                   start = justinmisc::char.position(x = output,
+                                                     pattern = ":",
+                                                     position = 2,
+                                                     instance = 1),
+                   stop = str_length(output))
+
+  output <- substr(x = output,
+                   start = 1,
+                   stop = justinmisc::char.position(x = output,
+                                                    pattern = " ",
+                                                    position = -1,
+                                                    instance = 1))
+  return(output)
+}
+
+
+#' @title correct mode types
+#'
+#' @description Function to correct modes after df
+#' manipulation changes columns to characters
+#'
+#' @name correct.mode
+#'
+#' @param df data frame
+#' @param mode.vec designed to take output of function mode.type(),
+#' mode.vec must be one of the following: "num","int","Factor",
+#' "cplx","chr","logi","raw". Mode type is changed by index.
+#'
+#' @return df with mode types
+#'
+#' @export
+correct.mode <- function(df, mode.vec) {
+
+  if(ncol(df)!=length(mode.vec)) {
+    stop("ERROR: number of data frame columns does not equal length of mode.vec ")
+  }
+  modes <- c("num","int","Factor","cplx","chr","logi","raw")
+  for(j in 1:(length(mode.vec))) {
+    if(!any(mode.vec[j]==modes)) {
+      stop("mode.vec must be one of the following: \"num\",\"int\",\"Factor\",\"cplx\",\"chr\",\"logi\",\"raw\"")
+    }
+  }
+  for(i in 1:(ncol(df))){
+    if(mode.vec[i]=="num") {
+      df[,i] <- as.numeric(as.character(df[,i]))
+      next
+    }
+    if(mode.vec[i]=="int") {
+      df[,i] <- as.integer(as.character(df[,i]))
+      next
+    }
+    if(mode.vec[i]=="Factor") {
+      df[,i] <- as.factor(as.character(df[,i]))
+      next
+    }
+    if(mode.vec[i]=="chr") {
+      df[,i] <- as.character(df[,i])
+      next
+    }
+    if(mode.vec[i]=="cplx") {
+      df[,i] <- as.cplx(as.character(df[,i]))
+      next
+    }
+    if(mode.vec[i]=="logi") {
+      df[,i] <- as.logical(as.character(df[,i]))
+      next
+    }
+    if(mode.vec[i]=="raw") {
+      df[,i] <- as.raw(as.character(df[,i]))
+      next
+    }
+  }
+
+  return(df)
+}
+
+#' @title reshape count data into frequency data
+#'
+#' @description Change count data into frequency data by repeating
+#' lines of data frame via the count column.
+#'
+#' @name count.to.frequency
+#'
+#' @param df data frame
+#' @param count Column vector name (character) or index (integer)
+#' that specifies count data
+#' @param drop.na Logical: Default set to FALSE for speed, NA may
+#' affect output thus set to TRUE if unsure.
+#'
+#' @return df with mode types
+#'
+#' @export
+count.to.frequency <- function(df,count,drop.na = FALSE){
+
+
+  count <- index.o.coln(vec = count,
+                        v.size = 1,
+                        v.name = "count",
+                        name.col = colnames(df))
+
+  if(drop.na==TRUE){
+    df <- df[!is.na(df[,count]),]
+  }
+
+  df.work <- df[,-count]
+  df.mode <- mode.type(df = df.work)
+  count <- df[,count]
+  if(any(is.na(count))){
+    stop("count vector cannot contain NA")
+  }
+  if(sum(count%%1)>=(1e-15*length(count))){
+    stop("count vector must have only integers")
+  }
+
+  coln <- colnames(df.work)
+
+  df.new <- rep(df.work[,coln[1]], count )
+  for(i in 2:length(coln)){
+    vec <- rep(as.character(df.work[,coln[i]]), count)
+    df.new <- cbind(df.new, vec)
+  }
+
+  colnames(df.new) <- coln
+  df.new <- as.data.frame(df.new)
+  df.new <- correct.mode(df = df.new, mode.vec = df.mode)
+  return(df.new)
 
 }
 

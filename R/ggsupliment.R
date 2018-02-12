@@ -3,6 +3,9 @@
 #' @import ggplot2
 #' @import dplyr
 #' @import magrittr
+#' @importFrom  tidyr unnest
+#' @import stringr
+
 
 
 #' @title returns the distance between numbers
