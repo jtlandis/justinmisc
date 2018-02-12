@@ -35,7 +35,8 @@ paste2 <- function(...,sep=", ") {
 #' returned if pattern is found in x, char.position returns the exact position by
 #' default. -1 returns position before pattern and 1 returns position after pattern.
 #' @param instance positive integer used to modulate which instance of the pattern
-#' is returned. Default is first instance.
+#' is returned. Default is first instance. Assign "last" to return last instance in
+#' string
 #'
 #' @return Number vector of position of pattern found, returns NA if not found
 #'
@@ -51,6 +52,7 @@ char.position <- function(x, pattern, position = 0, instance = 1){
     stop("position must be an integer")
   }
   r <- nchar(x)
+  pat.length <- nchar(pattern)
   inst <- instance
   if(!is.numeric(inst)){
     if(is.character(inst) && inst != "last") {
@@ -70,7 +72,7 @@ char.position <- function(x, pattern, position = 0, instance = 1){
     c <- 0
     a <- r[j]
     for(i in 1:a) {
-      if(substr(x[j],i,i) == pattern) {
+      if(substr(x[j],i,(i+pat.length-1)) == pattern) {
         b <- b + 1
         if(((position + i) <= 0)|((position + i) >= a)) {
           if((position + i) <= 0) {
@@ -161,3 +163,60 @@ commoncol <- function(x, y, join=FALSE) {
     return(vec)
   }
 }
+
+
+#' @title Make data frame atomic
+#'
+#' @description Used when one column has nested values that
+#' make the data frame not atomic
+#'
+#' @name make.atomic
+#'
+#' @param df data frame
+#' @param de.atomic Index of the column or character column
+#' name to make atomic
+#' @param sep character pattern delimiter for nested factors
+#' @param new.name Name of the atomic column
+#'
+#' @return denested data frame
+#'
+#' @export
+make.atomic <- function(df, de.atomic, sep, new.name = "atomic") {
+
+  if(length(de.atomic)!=1) {
+    stop("de.atomic must be of length 1")
+  }
+  name.col <- colnames(df)
+  if(!is.character(new.name)) {
+    stop("new.name must be a character vector")
+  }
+  if(is.character(de.atomic)|is.numeric(de.atomic)) {
+    if(is.character(de.atomic)){
+      if(any(name.col==de.atomic)){
+        index<-which(name.col==de.atomic)
+      } else {
+        stop("character does not any column name")
+      }
+
+    }
+    if(is.numeric(de.atomic)){
+      if(all((de.atomic%%1)==0)){
+        index <- de.atomic
+      }
+    }
+
+  } else {
+    stop("de.atomic must be character vector of column name or column index")
+  }
+
+
+  df <- df %>%
+    mutate(atomic=(strsplit(as.character(df[,name.col[index]]),split = sep))) %>%
+    unnest(atomic)
+
+  colnames(df) <- c(name.col, new.name)
+
+  return(df)
+
+}
+

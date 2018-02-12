@@ -507,3 +507,96 @@ contrast.aov3 <- function(df, response, factor3){
   rownames(test) <- c("Residuals", cnames)
   return(test)
 }
+
+#' @title standard hclust function
+#'
+#' @description internal clustering function to automatically
+#' reorder factors
+#'
+#' @name clust
+#'
+#' @param df data frame passed
+#' @param col.index index columns of df that will be clustered
+#' @param value.var value by which clustering occures
+#'
+#' @return df but with reordered factors
+clust <- function(df, col.index, value.var) {
+
+  df.wide <- dcast(df, formula = df[,col.index[1]]~df[,col.index[2]], value.var = value.var)
+  row.names(df.wide) <- df.wide[,1]
+  df.wide <- df.wide[,-1]
+  a <- dist((df.wide))
+  hc <- hclust(a)
+
+  .test <- as.data.frame((df.wide))
+  .test <- .test %>%
+    mutate(names = rownames(.test))
+  c <- .test[hc$order,]$names
+
+  df[,col.index[1]] <- factor(df[,col.index[1]], levels = c)
+  return(df)
+}
+
+#' @title euclidian clustering function
+#'
+#' @description reorder factors passed to y.by.x via their respective
+#' clusters
+#'
+#' @name distance.cluster
+#'
+#' @param df data frame passed containing both factor columns to reorder
+#' and numeric column to cluster by
+#' @param y.by.x Index of the columns or character column
+#' names to reorder
+#' @param value.var Character column name by which clustering will be
+#' calculated
+#' @param which.clut Defines which column is reordered. Default set to both.
+#' Set to "y" to only reorder y.by.x[1], set to "x" to only reorder y.by.x[2]
+#'
+#' @return returns df but with reordered factors
+#'
+#' @export
+distance.cluster <- function(df, y.by.x, value.var,which.clust = "both") {
+
+
+  if(length(y.by.x)!=2){
+    stop("y.by.x must be length 2")
+  }
+  df <- drop.levels(df)
+  name.col <- colnames(df)
+  if(is.character(y.by.x)|is.numeric(y.by.x)) {
+    if(is.character(y.by.x)) {
+      if(any(name.col==y.by.x)) {
+        index<-which(name.col==y.by.x)
+      } else {
+        stop("character does not any column name")
+      }
+
+    }
+    if(is.numeric(y.by.x)) {
+      if(all((y.by.x%%1)==0)) {
+        index <- y.by.x
+      } else {
+        stop("Numbers must be integers of columns of interest")
+      }
+    }
+
+  } else {
+    stop("y.by.x must be character vector of column name or column index")
+  }
+
+  if(!any(which.clust==(c("both","y","x")))) {
+    stop("specify which factor you wish to cluster by. Default \"both\", or \"y\" or \"x\". ")
+  }
+
+  if(which.clust=="both"|which.clust=="y") {
+    df <- clust(df = df,col.index = index,value.var = value.var)
+  }
+  if(which.clust=="both"|which.clust=="x") {
+    df <- clust(df = df,col.index = index[c(2,1)],value.var = value.var)
+  }
+
+  return(df)
+
+}
+

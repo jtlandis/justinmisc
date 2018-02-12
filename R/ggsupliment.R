@@ -2,6 +2,7 @@
 
 #' @import ggplot2
 #' @import dplyr
+#' @import magrittr
 
 
 #' @title returns the distance between numbers
@@ -126,7 +127,7 @@ gradiant.color.range <- function(value, colors, cbreaks, tol = 0.05, report = FA
   break.test <- cbreaks - (v.min) #shift cbreaks to be positive, necessary for accurate index counting when parsing the range
 
 
-  for(i in n:700) { #find the index at which the range is sufficently parsed to put the color vector at desired cbreaks
+  for(i in n:14000) { #find the index at which the range is sufficently parsed to put the color vector at desired cbreaks
 
     int <- (r)/i
     new <- rep(0, length(cbreaks))
