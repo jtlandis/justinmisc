@@ -23,7 +23,7 @@ paste2 <- function(...,sep=", ") {
 
 #' @title  Index or Column name
 #'
-#' @description Internal funciton mostly used to see if vector
+#' @description Generally internal funciton mostly used to see if vector
 #'  passed specifies column by character name or index
 #'
 #' @name index.o.coln
@@ -34,22 +34,30 @@ paste2 <- function(...,sep=", ") {
 #' @param name.col name of all column vectors
 #'
 #' @return integer vector of size v.size
+#'
+#' @export
 index.o.coln <- function(vec, v.size, v.name, name.col) {
   if(length(vec)!=v.size) {
     stop(paste(v.name,"must be of length 1", sep = " "))
   }
   if(is.character(vec)|is.numeric(vec)) {
     if(is.character(vec)){
-      if(any(name.col==vec)){
-        index<-which(name.col==vec)
-      } else {
-        stop("character does not any column name")
+      index <- vector("integer", length = v.size)
+      for(i in 1:v.size) {
+        if(any(vec[i]==name.col)) {
+          index[i] <- which(vec[i]==name.col)
+
+        } else {
+          stop(paste("ERROR: at least 1 element of",v.name,"does not match the column names of df",sep = " "))
+        }
       }
 
     }
     if(is.numeric(vec)){
       if(all((vec%%1)==0)){
         index <- vec
+      } else {
+        stop(paste("ERROR:",v.name,"was not given whole integers", sep = " "))
       }
     }
 

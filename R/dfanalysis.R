@@ -558,32 +558,9 @@ clust <- function(df, col.index, value.var) {
 #' @export
 distance.cluster <- function(df, y.by.x, value.var,which.clust = "both") {
 
-
-  if(length(y.by.x)!=2){
-    stop("y.by.x must be length 2")
-  }
   df <- drop.levels(df)
   name.col <- colnames(df)
-  if(is.character(y.by.x)|is.numeric(y.by.x)) {
-    if(is.character(y.by.x)) {
-      if(any(name.col==y.by.x)) {
-        index<-which(name.col==y.by.x)
-      } else {
-        stop("character does not any column name")
-      }
-
-    }
-    if(is.numeric(y.by.x)) {
-      if(all((y.by.x%%1)==0)) {
-        index <- y.by.x
-      } else {
-        stop("Numbers must be integers of columns of interest")
-      }
-    }
-
-  } else {
-    stop("y.by.x must be character vector of column name or column index")
-  }
+  index <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "y.by.x", name.col)
 
   if(!any(which.clust==(c("both","y","x")))) {
     stop("specify which factor you wish to cluster by. Default \"both\", or \"y\" or \"x\". ")
@@ -600,3 +577,50 @@ distance.cluster <- function(df, y.by.x, value.var,which.clust = "both") {
 
 }
 
+
+
+#' @title linear model testing
+#'
+#' @description report r-squared values of subsets
+#'
+#' @name lm.test
+#'
+#' @param df data frame
+#' @param factors factor column names or indexs to subset by
+#' @param formula formula to use in lm function
+#'
+#' @return vector of r-squared values
+#'
+#' @export
+lm.test <- function(df, factors, formula) {
+  n <- length(factors)
+  colnam <- colnames(df)
+  index.f <- index.o.coln(vec = factors, v.size = n, v.name = "factors", name.col = colnam)
+  #index.v <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "factors", name.col = colnam)
+
+  df.work <- df %>%
+    mutate(group.id=interaction(df[,index.f]))
+  df.work$group.id <- as.factor(as.character(df.work$group.id))
+  df.work <- drop.levels(df.work)
+
+  ngroups <- nlevels(df.work$group.id)
+  groups <- levels(df.work$group.id)
+
+  vec <- vector(mode = "numeric",length = ngroups)
+  for(i in 1:ngroups){
+    df.test <- subset(df.work, group.id %in% groups[i])
+    a <- summary(lm(formula = formula, data = df.test))
+    #print(a["coefficients"])
+    vec[i] <- a["r.squared"]
+  }
+
+  vec <- as.data.frame(vec)
+
+  rownames(vec) <- "r.squared"
+  colnames(vec) <- groups
+
+
+  return(t(vec))
+
+
+}
