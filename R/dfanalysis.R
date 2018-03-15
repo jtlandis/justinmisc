@@ -1,5 +1,7 @@
 #functions used for some analysis
 
+#' @importFrom  gdata drop.levels
+
 #' @title perform 2^k analysis on factors
 #'
 #' @description will report the effects of various factors of two levels
@@ -7,35 +9,34 @@
 #' @name twokeffect
 #'
 #' @param df data frame passed containing value vector and factors
-#' @param v.col.n positive integer that describes the index of the response vector
-#' @param fact.col.n vector of positive integer(s) that describes the index of the
-#' factors to be used
+#' @param response positive integer index or character name of a column response vector
+#' @param factor.colmn vector of positive integer(s) index(es) or character name of column(s)
+#' that describes the index of the factors to be used
 #' @param interaction Logical, augments if interaction between factor levels will
 #' be reported. Default is set to FALSE
 #'
 #' @return data frame of effects
 #'
 #' @export
-twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
+twokeffect <- function(df,response,factor.colmn, interaction=F) {
 
-  if((v.col.n%%1) != 0){
-    stop("v.vol.n must be a integer")
-  }
-  n <- length(fact.col.n)
-  if(any(fact.col.n%%1 != 0)) {
-    stop("fact.col.n must be an integer vector")
+  response <- index.o.coln(vec = response, v.size = 1,v.name = "response", name.col = colnames(df))
+  factor.colmn <- index.o.coln(vec = factor.colmn, v.size = length(factor.colmn),v.name = "factor.colmn", name.col = colnames(df))
+  n <- length(factor.colmn)
+  if(any(factor.colmn%%1 != 0)) {
+    stop("factor.colmn must be an integer vector")
   }
   if(n <2) {
-    stop("fact.col.n must be of at least length 2.")
+    stop("factor.colmn must be of at least length 2.")
   }
   if(!is.logical(interaction)) {
     stop("interaction must be a logical vector. Assign 'TRUE' to also get interactions between factors")
   }
   colsize <- n + 1
   sub<- vector("integer", colsize)
-  sub[1] <- v.col.n
+  sub[1] <- response
   for(i in 2:colsize) {
-    sub[i] <- fact.col.n[i-1]
+    sub[i] <- factor.colmn[i-1]
   }
   df <- as.data.frame(df[,sub])
   cnames <- as.character(colnames(df))
@@ -120,9 +121,9 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
 #' @name balance.sample
 #'
 #' @param df data frame passed containing value vector and factors
-#' @param v.col.n positive integer that describes the index of the response vector
-#' @param fact.col.n vector of positive integer(s) that describes the index of the
-#' factors to be used
+#' @param response positive integer index or character name of a column response vector
+#' @param factor.colmn vector of positive integer(s) index(es) or character name of column(s)
+#' that describes the index of the factors to be used
 #' @param replace Not yet working
 #' @param min.samp.numb Can take a positive integer, only subsets of factors
 #' greater than or equal to this number will be reported
@@ -130,26 +131,25 @@ twokeffect <- function(df,v.col.n,fact.col.n, interaction=F) {
 #' @return Balanced data frame that is a subset of the first
 #'
 #' @export
-balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb = "min") {
-  if((v.col.n%%1) != 0){
-    stop("v.vol.n must be a integer")
-  }
+balance.sample <- function(df,response,factor.colmn, replace=FALSE, min.samp.numb = "min") {
 
-  n <- length(fact.col.n)
-  if(any(fact.col.n%%1 != 0)) {
-    stop("fact.col.n must be an integer vector")
+  response <- index.o.coln(vec = response, v.size = 1,v.name = "response", name.col = colnames(df))
+  factor.colmn <- index.o.coln(vec = factor.colmn, v.size = length(factor.colmn),v.name = "factor.colmn", name.col = colnames(df))
+  n <- length(factor.colmn)
+  if(any(factor.colmn%%1 != 0)) {
+    stop("factor.colmn must be an integer vector")
   }
   # if(n <2) {
-  #   stop("fact.col.n must be of at least length 2.")
+  #   stop("factor.colmn must be of at least length 2.")
   # }
   if(!is.logical(replace)) {
     stop("replace must be a logical vector.")
   }
   colsize <- n + 1
   sub<- vector("integer", colsize)
-  sub[1] <- v.col.n
+  sub[1] <- response
   for(i in 2:colsize) {
-    sub[i] <- fact.col.n[i-1]
+    sub[i] <- factor.colmn[i-1]
   }
   df <- df[,sub]
   #df$id <- interaction(df[,-1])
@@ -230,7 +230,7 @@ balance.sample <- function(df,v.col.n,fact.col.n, replace=FALSE, min.samp.numb =
 
 #' @title generate combinations
 #'
-#' @description Generate a dataframe of the combinations
+#' @description Generate a dataframe of the 2 group combinations between factors
 #'
 #' @name comb.comp
 #'
@@ -282,11 +282,11 @@ comb.comp <- function(vector, rtrn.all = FALSE){
 #' @name combo.wilcox
 #'
 #' @param df data frame passed containing value vector and factors
-#' @param response positive integer that describes the index of the response vector
-#' @param factor vector of positive integer(s) that describes the index of the
-#' factors to be used. Number of factors passed changes the comparison. One factor
-#' vector passed will return wilcox test values between levels. Multiple factor
-#' vectors passed will return wilcon test values between all combination of interactions
+#' @param response positive integer index or character name of a column response vector
+#' @param factor.colmn vector of positive integer(s) index(es) or character name of column(s)
+#' that describes the index of the factors to be used. Number of factors passed changes the
+#' comparison. One factor vector passed will return wilcox test values between levels. Multiple
+#' factor vectors passed will return wilcon test values between all combination of interactions
 #' of factors.
 #' @param p.v.correct Logical assignment. Default set to FALSE. Will return logical vector
 #' along with test results. TRUE indicates P.value is less than adjusted P.value, FALSE
@@ -302,16 +302,10 @@ comb.comp <- function(vector, rtrn.all = FALSE){
 combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor.comp = FALSE) {
 
   #browser()
-  if((response%%1) != 0){
-    stop("response must be a integer")
-  }
+  name.col <- colnames(df)
+  response <- index.o.coln(vec = response, v.size = 1, v.name = "response", name.col = name.col)
+  factor <- index.o.coln(vec = factor, v.size = length(factor), v.name = "factor", name.col = name.col)
   n <- length(factor)
-  if(any(factor%%1 != 0)) {
-    stop("factor must be an integer vector")
-  }
-  if(any(factor<0)) {
-    stop("factor must contain positive intiger(s)")
-  }
   if(!is.logical(p.v.correct)) {
     stop("interaction must be a logical vector. Assign 'TRUE' to also get interactions between factors")
   }
@@ -320,7 +314,7 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
                #if greater than 2, colapse into 1 factor via interaction
                # will also allow for single factor comparisons
     colsize <- n + 1
-    sub<- vector("integer", colsize)
+    sub<- vector("integer", colsize) #hold the index of the data frame
     sub[1] <- response
     for(i in 2:colsize) {
       sub[i] <- factor[i-1]
@@ -349,7 +343,7 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
 
     if(single.factor.comp==TRUE){
 
-      combo.vec <- comb.comp(vector = df[,2])
+      combo.vec <- comb.comp(vector = df[,2])     #building combo.vec
       combo.vec <- cbind(rep(2,nrow(combo.vec)), combo.vec)
       colnames(combo.vec) <- c("column.index","f1","f2")
       for(m in 3:colsize){
@@ -442,9 +436,8 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
 #' @export
 contrast.aov3 <- function(df, response, factor3){
 
-  if((response%%1) != 0){
-    stop("response must be a integer")
-  }
+  response <- index.o.coln(vec = response, v.size = 1, v.name = "response", name.col = name.col)
+  factor3 <- index.o.coln(vec = factor3, v.size = 3, v.name = "factor3", name.col = name.col)
   n <- length(factor3)
   if(any(factor3%%1 != 0)) {
     stop("factor3 must be an integer vector")
@@ -516,12 +509,13 @@ contrast.aov3 <- function(df, response, factor3){
 #' @name clust
 #'
 #' @param df data frame passed
-#' @param col.index index columns of df that will be clustered
+#' @param col.index index or character name of columns in df that will be clustered
 #' @param value.var value by which clustering occures
 #'
 #' @return df but with reordered factors
 clust <- function(df, col.index, value.var) {
 
+  col.index <- index.o.coln(vec=col.index, v.size = 2, v.name = "col.index", name.col = colnames(df))
   df.wide <- dcast(df, formula = df[,col.index[1]]~df[,col.index[2]], value.var = value.var)
   row.names(df.wide) <- df.wide[,1]
   df.wide <- df.wide[,-1]

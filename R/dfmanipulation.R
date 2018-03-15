@@ -393,3 +393,75 @@ count.to.frequency <- function(df,count,drop.na = FALSE){
 
 }
 
+#' @title Reorder factors according to simple funciton
+#'
+#' @description Will reorder factors based off of a group subset
+#'
+#' @name reorderFactor.by
+#'
+#' @param data data frame
+#' @param factor.to.order column name or index of factors that will be reordered
+#' @param factor.col column name or index that contains 'by.factor'
+#' @param by.factor character name of factor in factor.col that data will
+#' be subsetted for calculations and group desired for order
+#' @param FUN Simple function that takes a vector of numbers and returns a single
+#' output. Default set to NULL, must assign a function if group.by is not NULL.
+#' @param applied.on Numeric vector used as inputs to FUN. Will ultamitly
+#' determine order of factor.to.order
+#' @param group.by column names or indexes that further groups by.factor subset to
+#' which FUN is applied. Default set to NULL.
+#' @param decreasing logical, default set to FALSE. Determines if order is increasing
+#' or decreasing.
+#'
+#' @return returns data with factor.to.order reordered by FUN of by.factor subsetted through group.by.
+#'
+#' @export
+reorderFactor.by <- function(data, factor.to.order,factor.col, by.factor, FUN=NULL, applied.on,group.by=NULL, decreasing = FALSE) {
+
+  df <- data
+  names <- colnames(df)
+  index.t.o <- index.o.coln(vec = factor.to.order, v.size = 1, v.name = "factor.to.order", name.col = names)
+  index.f <- index.o.coln(vec = factor.col, v.size = 1, v.name = "factor.col", name.col = names)
+  index.on <- index.o.coln(vec = applied.on, v.size = 1, v.name = "applied.on", name.col = names)
+  if(!is.character(by.factor)){
+    stop("by.factor must be a character")
+  }
+  if(!is.factor(df[,index.t.o])) {
+    stop("factor.to.order must be a factor vector")
+  }
+  if(!is.numeric(df[,index.on])) {
+    stop("applied.on must be a numeric vector")
+  }
+
+  a <- df[df[,index.f]==by.factor,]
+  if(nrow(a)==0){
+    stop(paste("by.factor was not found in",names[index.f], sep = " "))
+  }
+  a$temp.vector.ignore <- a[,index.on]
+
+
+  if(!is.null(group.by)){
+    if(is.null(FUN)) {
+      stop("Please assign a function when using group.by")
+    }
+    index.gb <- index.o.coln(vec = group.by, v.size = length(group.by), v.name = "group.by", name.col = names)
+    a$id <- interaction(a[,index.gb])
+
+    factor.list <- levels(a$id)
+    a.build <- subset(a, id %in% factor.list[1])
+    a.build <- a.build %>%
+      mutate(new.order=FUN(a.build$temp.vector.ignore))
+    for(i in 2:length(factor.list)){
+      a.work <- subset(a, id %in% factor.list[i])
+      a.work <- a.work %>%
+        mutate(new.order=FUN(as.numeric(a.work$temp.vector.ignore)))
+      a.build <- rbind(a.build, a.work)
+    }
+  } else {
+    a.build <- a
+    a.build$new.order <- a[,index.on]
+  }
+
+  df[,index.t.o] <- factor(df[,index.t.o], levels = unique(a.build[order(a.build$new.order, decreasing = decreasing),index.t.o]))
+  return(df)
+}
