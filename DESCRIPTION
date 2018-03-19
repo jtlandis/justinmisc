@@ -1,0 +1,12 @@
+Package: justinmisc
+Type: Package
+Title: Justin's Misc
+Version: 0.2.0
+Author: Justin Landis
+Maintainer: Justin Landis <jtlandis314@gmail.com>
+Description: Justin's useful functions
+    Use four spaces when indenting paragraphs within the Description.
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
