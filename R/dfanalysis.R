@@ -587,34 +587,43 @@ distance.cluster <- function(df, y.by.x, value.var,which.clust = "both") {
 #'
 #' @export
 lm.test <- function(df, factors, formula) {
+
   n <- length(factors)
   colnam <- colnames(df)
   index.f <- index.o.coln(vec = factors, v.size = n, v.name = "factors", name.col = colnam)
   #index.v <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "factors", name.col = colnam)
 
-  df.work <- df %>%
-    mutate(group.id=interaction(df[,index.f]))
+
+  df.work <- df
+  df.work$group.id <- interaction(df[,index.f])
+  #   mutate(group.id=interaction(df[,index.f]))
   df.work$group.id <- as.factor(as.character(df.work$group.id))
   df.work <- drop.levels(df.work)
 
   ngroups <- nlevels(df.work$group.id)
   groups <- levels(df.work$group.id)
 
-  vec <- vector(mode = "numeric",length = ngroups)
+  vec.r <- vector(mode = "numeric",length = ngroups)
+  vec.s <- vector(mode = "numeric",length = ngroups)
+  vec.i <- vector(mode = "numeric",length = ngroups)
   for(i in 1:ngroups){
     df.test <- subset(df.work, group.id %in% groups[i])
     a <- summary(lm(formula = formula, data = df.test))
     #print(a["coefficients"])
-    vec[i] <- a["r.squared"]
+
+    vec.r[i] <- a$r.squared
+    vec.s[i] <- a$coefficients[2,1]
+    vec.i[i] <- a$coefficients[1,1]
   }
 
-  vec <- as.data.frame(vec)
+  vec <- as.data.frame(cbind(vec.r,vec.s,vec.i))
 
-  rownames(vec) <- "r.squared"
-  colnames(vec) <- groups
+  rownames(vec) <- groups
+  colnames(vec) <- c("r.squared","slope","intercept")
 
 
-  return(t(vec))
+
+  return(vec)
 
 
 }
