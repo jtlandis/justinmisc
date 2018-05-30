@@ -290,49 +290,82 @@ mode.type <- function(df) {
 #' @param df data frame
 #' @param mode.vec designed to take output of function mode.type(),
 #' mode.vec must be one of the following: "num","int","Factor",
-#' "cplx","chr","logi","raw". Mode type is changed by index.
+#' "cplx","chr","logi","raw", "ignore". Mode type is changed by index.
 #'
 #' @return df with mode types
 #'
 #' @export
-correct.mode <- function(df, mode.vec) {
+correct.mode <- function(df, mode.vec, space_replace = "_") {
 
   if(ncol(df)!=length(mode.vec)) {
     stop("ERROR: number of data frame columns does not equal length of mode.vec ")
   }
-  modes <- c("num","int","Factor","cplx","chr","logi","raw")
+  modes <- c("num","int","Factor","cplx","chr","logi","raw","ignore")
   for(j in 1:(length(mode.vec))) {
     if(!any(mode.vec[j]==modes)) {
-      stop("mode.vec must be one of the following: \"num\",\"int\",\"Factor\",\"cplx\",\"chr\",\"logi\",\"raw\"")
+      stop("mode.vec must be one of the following: \"num\",\"int\",\"Factor\",\"cplx\",\"chr\",\"logi\",\"raw\", \"ignore\"")
     }
+  }
+  cnames <- colnames(df)
+  if(any(str_detect(cnames, " "))) {
+    warning("Colnames contain spaces")
+    cnames <- gsub(" ", space_replace, cnames)
   }
   for(i in 1:(ncol(df))){
     if(mode.vec[i]=="num") {
-      df[,i] <- as.numeric(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.numeric(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="int") {
-      df[,i] <- as.integer(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.integer(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="Factor") {
-      df[,i] <- as.factor(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.factor(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="chr") {
-      df[,i] <- as.character(df[,i])
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.character(",
+                              "df$",colnames(df)[i],
+                              ")",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="cplx") {
-      df[,i] <- as.cplx(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.cplx(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="logi") {
-      df[,i] <- as.logical(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.logical(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
     if(mode.vec[i]=="raw") {
-      df[,i] <- as.raw(as.character(df[,i]))
+      eval(parse(text = paste("df$",colnames(df)[i],
+                              " <- as.raw(as.character(",
+                              "df$",colnames(df)[i],
+                              "))",
+                              sep = "")))
       next
     }
   }
