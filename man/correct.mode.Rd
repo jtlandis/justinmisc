@@ -4,14 +4,14 @@
 \alias{correct.mode}
 \title{correct mode types}
 \usage{
-correct.mode(df, mode.vec)
+correct.mode(df, mode.vec, space_replace = "_")
 }
 \arguments{
 \item{df}{data frame}
 
 \item{mode.vec}{designed to take output of function mode.type(),
 mode.vec must be one of the following: "num","int","Factor",
-"cplx","chr","logi","raw". Mode type is changed by index.}
+"cplx","chr","logi","raw", "ignore". Mode type is changed by index.}
 }
 \value{
 df with mode types

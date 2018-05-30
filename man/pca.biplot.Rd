@@ -4,7 +4,7 @@
 \alias{pca.biplot}
 \title{pca.biplot}
 \usage{
-pca.biplot(pca.obj, pcs, flip = FALSE)
+pca.biplot(pca.obj, pcs, flip = FALSE, scale = T)
 }
 \arguments{
 \item{pca.obj}{Takes pca object made by just.pca()}
@@ -12,9 +12,13 @@ pca.biplot(pca.obj, pcs, flip = FALSE)
 \item{pcs}{Integer input vector of length 2 of which PC dimensions
 should be plotted}
 
-\item{flip}{Logical, Defaul set to FALSE. will flip coordinates
+\item{flip}{Logical, Default set to FALSE. will flip coordinates
 over x=y line. Only included because PCA function's biplot seems to
 always be flipped.}
+
+\item{scale}{Logical, Default set to TRUE. Will scale vectors to unit
+circle. If set to FALSE, will use eigenvalues as relative length. Scale
+set to FALSE will also remove regular coordinates and plotted circle.}
 }
 \value{
 ggplot plot of the variables in a coordinate graph of two
