@@ -308,8 +308,9 @@ correct.mode <- function(df, mode.vec, space_replace = "_") {
   }
   cnames <- colnames(df)
   if(any(str_detect(cnames, " "))) {
-    warning("Colnames contain spaces")
+    warning("Colnames contain spaces, replaceing spaces with \"_\"")
     cnames <- gsub(" ", space_replace, cnames)
+    colnames(df) <- cnames
   }
   for(i in 1:(ncol(df))){
     if(mode.vec[i]=="num") {
