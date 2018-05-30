@@ -513,10 +513,10 @@ contrast.aov3 <- function(df, response, factor3){
 #' @param value.var value by which clustering occures
 #'
 #' @return df but with reordered factors
-clust <- function(df, col.index, value.var) {
+clust <- function(df, formula, value.var, fun.aggregate = NULL, vec.col) {
 
-  col.index <- index.o.coln(vec=col.index, v.size = 2, v.name = "col.index", name.col = colnames(df))
-  df.wide <- dcast(df, formula = df[,col.index[1]]~df[,col.index[2]], value.var = value.var)
+  #col.index <- index.o.coln(vec=col.index, v.size = 2, v.name = "col.index", name.col = colnames(df))
+  df.wide <- dcast(df, formula = formula, value.var = value.var, fun.aggregate = fun.aggregate)
   row.names(df.wide) <- df.wide[,1]
   df.wide <- df.wide[,-1]
   a <- dist((df.wide))
@@ -527,7 +527,8 @@ clust <- function(df, col.index, value.var) {
     mutate(names = rownames(.test))
   c <- .test[hc$order,]$names
 
-  df[,col.index[1]] <- factor(df[,col.index[1]], levels = c)
+  eval(parse(text = paste("df$",vec.col," <- factor(df$", vec.col,", levels = c)", sep = "")))
+  #df[,col.index[1]] <- factor(df[,col.index[1]], levels = c)
   return(df)
 }
 
@@ -550,21 +551,40 @@ clust <- function(df, col.index, value.var) {
 #' @return returns df but with reordered factors
 #'
 #' @export
-distance.cluster <- function(df, y.by.x, value.var,which.clust = "both") {
+distance.cluster <- function(df, formula, value.var,which.clust = "both", fun.aggregate = mean) {
 
   df <- drop.levels(df)
-  name.col <- colnames(df)
-  index <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "y.by.x", name.col)
+  #name.col <- colnames(df)
+  #index <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "y.by.x", name.col)
 
   if(!any(which.clust==(c("both","y","x")))) {
     stop("specify which factor you wish to cluster by. Default \"both\", or \"y\" or \"x\". ")
   }
 
+  form <- deparse(substitute(formula))
+  if(any(str_detect(form, "\\+"))) {
+    stop("ERROR: \"+\" character detected in column names. please pass single vectors on either side of ~")
+  }
+    form <- gsub(pattern = " ", replacement = "", form)
+    form <- gsub(pattern = "formula=", replacement = "", form)
+    form <- str_split(form, "~")
+    form.y <- form[[1]][1]
+    form.x <- form[[1]][2]
+
+
   if(which.clust=="both"|which.clust=="y") {
-    df <- clust(df = df,col.index = index,value.var = value.var)
+    df <- clust(df = df,
+                formula = formula,
+                value.var = value.var,
+                fun.aggregate = fun.aggregate,
+                vec.col = form.y)
   }
   if(which.clust=="both"|which.clust=="x") {
-    df <- clust(df = df,col.index = index[c(2,1)],value.var = value.var)
+    df <- clust(df = df,
+                formula = paste(form.x,"~",form.y,sep = ""),
+                value.var = value.var,
+                fun.aggregate = fun.aggregate,
+                vec.col = form.x)
   }
 
   return(df)

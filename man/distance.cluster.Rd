@@ -4,17 +4,18 @@
 \alias{distance.cluster}
 \title{euclidian clustering function}
 \usage{
-distance.cluster(df, y.by.x, value.var, which.clust = "both")
+distance.cluster(df, formula, value.var, which.clust = "both",
+  fun.aggregate = mean)
 }
 \arguments{
 \item{df}{data frame passed containing both factor columns to reorder
 and numeric column to cluster by}
 
-\item{y.by.x}{Index of the columns or character column
-names to reorder}
-
 \item{value.var}{Character column name by which clustering will be
 calculated}
+
+\item{y.by.x}{Index of the columns or character column
+names to reorder}
 
 \item{which.clut}{Defines which column is reordered. Default set to both.
 Set to "y" to only reorder y.by.x[1], set to "x" to only reorder y.by.x[2]}

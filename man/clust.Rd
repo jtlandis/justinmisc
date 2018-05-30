@@ -4,14 +4,14 @@
 \alias{clust}
 \title{standard hclust function}
 \usage{
-clust(df, col.index, value.var)
+clust(df, formula, value.var, fun.aggregate = NULL, vec.col)
 }
 \arguments{
 \item{df}{data frame passed}
 
-\item{col.index}{index or character name of columns in df that will be clustered}
-
 \item{value.var}{value by which clustering occures}
+
+\item{col.index}{index or character name of columns in df that will be clustered}
 }
 \value{
 df but with reordered factors
