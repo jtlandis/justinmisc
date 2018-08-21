@@ -499,3 +499,4 @@ reorderFactor.by <- function(data, factor.to.order,factor.col, by.factor, FUN=NU
   df[,index.t.o] <- factor(df[,index.t.o], levels = unique(a.build[order(a.build$new.order, decreasing = decreasing),index.t.o]))
   return(df)
 }
+
