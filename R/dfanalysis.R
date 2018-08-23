@@ -1,7 +1,5 @@
 #functions used for some analysis
 
-#' @importFrom  gdata drop.levels
-
 #' @title perform 2^k analysis on factors
 #'
 #' @description will report the effects of various factors of two levels
@@ -185,7 +183,7 @@ balance.sample <- function(df,response,factor.colmn, replace=FALSE, min.samp.num
 
         temp.df <-temp.df[temp.df[,ncol(temp.df)] %in% tab.temp[,ncol(tab.temp)],]
 
-      temp.df <- drop.levels(temp.df)
+      temp.df <- droplevels(temp.df)
       df <- temp.df[,-ncol(temp.df)]
       sample.n <- min(tab.temp[,a])
     }
@@ -365,7 +363,7 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
         for(z in 1:nlevels(df.temp1$temp)){
           df.z.work <- df.temp1[df.temp1$temp == temp.names[z],]
           #df.z <- rbind(df.z,df.z.work)
-          df.z.work <- drop.levels(df.z.work)
+          df.z.work <- droplevels(df.z.work)
           wil.work <- wilcox.test(df.z.work[,1]~df.z.work[,combo.vec[o,1]])
           new.df.z <- cbind(as.character(paste(cnames[combo.vec[o,1]])),
                             as.character(paste(levels(df.z.work[,combo.vec[o,1]])[1],
@@ -395,14 +393,14 @@ combo.wilcox <- function(df, response, factor, p.v.correct= FALSE, single.factor
   if(!is.numeric(df[,1])) {
     stop("response must be a numeric vector")
   }
-  df <- drop.levels(df)
+  df <- droplevels(df)
   combo.vec <- comb.comp(vector = df[,2], rtrn.all = TRUE)
   ncomp.made <- nrow(combo.vec)
   vec <- vector("numeric", ncomp.made)
   names.c <-  vector("character", ncomp.made)
   for(k in 1:ncomp.made){
     df.temp <- df[df[,2]==as.character(combo.vec[k,1])|df[,2]==as.character(combo.vec[k,2]),]
-    df.temp <- drop.levels(df.temp)
+    df.temp <- droplevels(df.temp)
     wil.work <- wilcox.test(df.temp[,1]~df.temp[,2],data=df.temp)
     vec[k] <- wil.work[[3]]
     names.c[k] <- combo.vec[k,3]
@@ -553,7 +551,7 @@ clust <- function(df, formula, value.var, fun.aggregate = NULL, vec.col) {
 #' @export
 distance.cluster <- function(df, formula, value.var,which.clust = "both", fun.aggregate = mean) {
 
-  df <- drop.levels(df)
+  df <- droplevels(df)
   #name.col <- colnames(df)
   #index <- index.o.coln(vec = y.by.x, v.size = 2, v.name = "y.by.x", name.col)
 
@@ -618,7 +616,7 @@ lm.test <- function(df, factors, formula) {
   df.work$group.id <- interaction(df[,index.f])
   #   mutate(group.id=interaction(df[,index.f]))
   df.work$group.id <- as.factor(as.character(df.work$group.id))
-  df.work <- drop.levels(df.work)
+  df.work <- droplevels(df.work)
 
   ngroups <- nlevels(df.work$group.id)
   groups <- levels(df.work$group.id)
@@ -644,6 +642,4 @@ lm.test <- function(df, factors, formula) {
 
 
   return(vec)
-
-
 }
