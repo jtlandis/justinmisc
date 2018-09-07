@@ -214,12 +214,12 @@ balance.sample <- function(df,response,factor.colmn, replace=FALSE, min.samp.num
       temp.df <- temp.df[temp.df[,j+1]==factor.id.df[i,j],]
     }
     if(replace == T){
-      v <- sample(x = temp.df[,1],size = sample.n, replace = replace)
+      v <- sample(x = as.numeric(rownames(temp.df)),size = sample.n, replace = replace)
     } else {
-      v <- sample(x = temp.df[,1],size = sample.n)
+      v <- sample(x = as.numeric(rownames(temp.df)),size = sample.n)
     }
 
-    v <- temp.df[temp.df[,1]%in% v,] #max and replace not working as intended because this will not repeat repeated values
+    v <- temp.df[as.numeric(rownames(temp.df))%in% v,] #max and replace not working as intended because this will not repeat repeated values
     vec <- rbind(vec, v)
   }
   vec <- as.data.frame(vec)
