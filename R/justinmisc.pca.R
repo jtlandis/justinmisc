@@ -159,7 +159,7 @@ plotContrib <- function(pca.obj, PC, first = 10) {
   contrib <- contrib[contrib$names %in% order.names,]
   contrib[,1] <- contrib[,1]*100
   # contrib <- count.to.frequency(df = contrib, count = 1)
-  #contrib <- drop.levels(contrib)
+  #contrib <- droplevels(contrib)
   p <- ggplot(contrib, aes(x = names, y = Contribution)) +
     geom_bar(stat = "identity", fill = "blue") +
     labs(list(y = "Contribution (%)", x = "Variables")) +
