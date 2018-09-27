@@ -159,7 +159,7 @@ plotContrib <- function(pca.obj, PC, first = 10) {
   contrib <- contrib[contrib$names %in% order.names,]
   contrib[,1] <- contrib[,1]*100
   # contrib <- count.to.frequency(df = contrib, count = 1)
-  #contrib <- drop.levels(contrib)
+  #contrib <- droplevels(contrib)
   p <- ggplot(contrib, aes(x = names, y = Contribution)) +
     geom_bar(stat = "identity", fill = "blue") +
     labs(list(y = "Contribution (%)", x = "Variables")) +
@@ -346,60 +346,4 @@ pca.biplot <- function(pca.obj, pcs, flip = FALSE, scale = T) {
 }
 
 
-#' @title  plot3d_pca
-#'
-#' @description Returns pca scatter plot in 3d that can be moved
-#'
-#' @name plot3d_pca
-#'
-#' @param pca.obj Takes pca object made by just.pca()
-#' @param coord character string or numb of PC dimensions to use. Must
-#' be length 3.
-#' @param color Factor to color.
-#' @param size Size of the dots made
-#' @param brewer.name Selets brewer pallete by brewer.pal name
-#'
-#' @return 3D movable scatter plot of selected PCs
-#'
-#' @export
-plot3d_pca <-function(pca.object, coord, color, size = 5, brewer.name = "Spectral") {
 
-  #import rgl
-  options(rgl.printRglwidget = TRUE)
-
-  percent.var <- round((pca.object$values/(sum(pca.object$values)))*100,digits = 1)
-  data <- pca.object$data
-
-  pca.indx <- index.o.coln(vec = coord, v.size = 3, v.name = "coord", name.col = colnames(data))
-  col.temp <-colnames(pca.object$loadings)
-  index <- index.o.coln(vec = coord, v.size = 3, v.name = "coord", name.col = col.temp)
-  color.indx <- index.o.coln(vec = color, v.size = 1, v.name = "color", name.col = colnames(data))
-
-  df.work <- data[,c(pca.indx,color.indx)]
-  #colors <- color.map(color.code = "#FF8900", n = nlevels(data[,color.indx]))
-  data[,color.indx] <- as.factor(data[,color.indx])
-  n <- nlevels(data[,color.indx])
-  colors <- brewer.pal(n = n, name = brewer.name)
-
-  ptest <- plot3d(x = data[,pca.indx[1]],
-                  y = data[,pca.indx[2]],
-                  z = data[,pca.indx[3]],
-                  col = colors[data[,color.indx]],
-                  size = size,
-                  xlab = paste(col.temp[index[1]],
-                               " (",
-                               percent.var[index[1]],
-                               " %)",
-                               sep = ""),
-                  ylab = paste(col.temp[index[2]],
-                               " (",
-                               percent.var[index[2]],
-                               " %)",
-                               sep = ""),
-                  zlab = paste(col.temp[index[3]],
-                               " (",
-                               percent.var[index[3]],
-                               " %)",
-                               sep = ""))
-  return(ptest)
-}
