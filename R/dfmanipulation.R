@@ -279,7 +279,6 @@ mode.type <- function(df) {
   return(output)
 }
 
-
 #' @title correct mode types
 #'
 #' @description Function to correct modes after df
@@ -291,6 +290,7 @@ mode.type <- function(df) {
 #' @param mode.vec designed to take output of function mode.type(),
 #' mode.vec must be one of the following: "num","int","Factor",
 #' "cplx","chr","logi","raw", "ignore". Mode type is changed by index.
+#' @param space_replace character to replace " " characters in column names.
 #'
 #' @return df with mode types
 #'
