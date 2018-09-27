@@ -500,3 +500,42 @@ reorderFactor.by <- function(data, factor.to.order,factor.col, by.factor, FUN=NU
   return(df)
 }
 
+
+#' @name merge_multi
+#'
+#' @title merge_multi
+#'
+#' @description extends merge function to 3 or more vectors
+#'
+#' @param ... vectors to be merged. argument names become column names in returned value.
+#' If no arguments specified, default column names set to LETTERS set.
+#'
+#' @return data frame of combinded vectors.
+#'
+#' @examples
+#'
+#' merge_multi(x = c(1,2,3), y = c(4,5,6), z = c(7,8,9))
+#' merge_multi(c(1,2,3),c(4,5,6),c(7,8,9))
+#'
+#' @export
+merge_multi <- function(...) {
+  z <- list(...)
+  modes <- mode.type(z)
+  if(is.null(names(z))) {
+    name <- letters[seq(1,length(z))]
+  } else {
+    name <- names(z)
+  }
+  z.new <- interaction(merge(z[[1]],z[[2]]),sep = ",")
+  if(length(z)>2) {
+    for(i in 3:(length(z))) {
+      z.new <- interaction(merge(z.new,z[[i]]),sep = ",")
+    }
+  }
+  z.new <- as.data.frame(z.new)
+  colnames(z.new) <- "combind"
+  new <- separate(z.new,col = "combind",into = name,sep = ",")
+  new <- correct.mode(df = new,mode.vec = modes)
+  return(new)
+}
+
