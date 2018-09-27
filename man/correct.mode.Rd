@@ -12,6 +12,8 @@ correct.mode(df, mode.vec, space_replace = "_")
 \item{mode.vec}{designed to take output of function mode.type(),
 mode.vec must be one of the following: "num","int","Factor",
 "cplx","chr","logi","raw", "ignore". Mode type is changed by index.}
+
+\item{space_replace}{character to replace " " characters in column names.}
 }
 \value{
 df with mode types
